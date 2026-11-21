@@ -60,7 +60,8 @@ def main() -> None:
     cmd_timeout = int(os.environ.get("MSWEA_CMD_TIMEOUT", 300))
     step_limit = int(os.environ.get("MSWEA_STEP_LIMIT", 75))
     cost_limit = float(os.environ.get("MSWEA_COST_LIMIT", 15.0))
-    temperature = float(os.environ.get("MSWEA_TEMPERATURE", 0.0))
+    # Claude 5 系は temperature を送ると 400 になるため、指定がある時だけ送る
+    temperature = os.environ.get("MSWEA_TEMPERATURE")
     llm_timeout = int(os.environ.get("MSWEA_LLM_TIMEOUT", 120))
     max_tokens = int(os.environ.get("MSWEA_MAX_TOKENS", 4096))
 
@@ -82,11 +83,12 @@ def main() -> None:
 
     try:
         model_kwargs = {
-            "temperature": temperature,
             "drop_params": True,
             "timeout": llm_timeout,
             "max_tokens": max_tokens,
         }
+        if temperature is not None:
+            model_kwargs["temperature"] = float(temperature)
         extra_kwargs = {}
         if "anthropic" in model_name or "claude" in model_name:
             extra_kwargs["set_cache_control"] = "default_end"
